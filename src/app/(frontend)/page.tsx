@@ -1,59 +1,184 @@
-import { headers as getHeaders } from 'next/headers.js'
-import Image from 'next/image'
-import { getPayload } from 'payload'
 import React from 'react'
-import { fileURLToPath } from 'url'
+import Link from 'next/link'
+import Image from 'next/image'
+import type { Metadata } from 'next'
+import { getPayloadClient, formatDate, getImageUrl, getActiveAds, asRecords } from '@/lib/payload'
+import { ArticleCard } from '@/components/ArticleCard'
+import { AdSlot } from '@/components/AdSlot'
 
-import config from '@/payload.config'
-import './styles.css'
+export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Сүхбаатарын Өнгө — Нүүр хуудас',
+  description: 'Сүхбаатар аймгийн орон нутгийн сонин. Дариганга болон аймгийн мэдээ, нийгэм, соёл.',
+  openGraph: {
+    title: 'Сүхбаатарын Өнгө',
+    description: 'Сүхбаатар аймгийн орон нутгийн сонин',
+    type: 'website',
+  },
+}
 
 export default async function HomePage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
+  const payload = await getPayloadClient()
 
-  const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
+  const [articlesRes, categoriesRes, adsRes] = await Promise.all([
+    payload.find({
+      collection: 'articles',
+      where: { status: { equals: 'published' } },
+      sort: '-publishedAt',
+      limit: 20,
+      depth: 2,
+    }),
+    payload.find({
+      collection: 'categories',
+      sort: 'order',
+      limit: 10,
+    }),
+    payload.find({
+      collection: 'ads',
+      where: { active: { equals: true } },
+      sort: 'order',
+      limit: 20,
+    }),
+  ])
+
+  const articles = asRecords(articlesRes.docs)
+  const categories = asRecords(categoriesRes.docs)
+  const ads = adsRes.docs
+
+  const featured = articles.filter((a) => a.featured).slice(0, 4)
+  const mainFeatured = featured[0] ?? articles[0]
+  const sideFeatured = featured.slice(1, 4)
+  const latest = articles.slice(0, 10)
+
+  const articlesByCategory = categories.map((cat) => ({
+    cat,
+    articles: articles
+      .filter((a) => {
+        const c = a.category as Record<string, unknown> | null
+        return c && c.id === cat.id
+      })
+      .slice(0, 4),
+  })).filter((g) => g.articles.length > 0)
+
+  const headerAds = getActiveAds(ads as unknown[], 'header')
+  const sidebarAds = getActiveAds(ads as unknown[], 'sidebar')
 
   return (
-    <div className="home">
-      <div className="content">
-        <picture>
-          <source srcSet="https://raw.githubusercontent.com/payloadcms/payload/3.x/packages/ui/src/assets/payload-favicon.svg" />
-          <Image
-            alt="Payload Logo"
-            height={65}
-            src="https://raw.githubusercontent.com/payloadcms/payload/3.x/packages/ui/src/assets/payload-favicon.svg"
-            width={65}
-          />
-        </picture>
-        {!user && <h1>Welcome to your new project.</h1>}
-        {user && <h1>Welcome back, {user.email}</h1>}
-        <div className="links">
-          <a
-            className="admin"
-            href={payloadConfig.routes.admin}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Go to admin panel
-          </a>
-          <a
-            className="docs"
-            href="https://payloadcms.com/docs"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Documentation
-          </a>
+    <>
+      {headerAds.length > 0 && (
+        <div className="header-ad">
+          <div className="container">
+            <AdSlot ads={ads as unknown[]} placement="header" />
+          </div>
         </div>
+      )}
+
+      <div className="content-grid">
+        <div>
+          {mainFeatured && <FeaturedHero article={mainFeatured} sidePieces={sideFeatured} />}
+
+          <hr className="divider" />
+
+          <div className="section-heading">Сүүлийн мэдээ</div>
+          <div className="articles-grid">
+            {latest.slice(0, 6).map((article) => (
+              <ArticleCard key={article.id as string} article={article} />
+            ))}
+          </div>
+
+          {articlesByCategory.map(({ cat, articles: catArticles }) => (
+            <div key={cat.id as string} style={{ marginBottom: '2.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div className="section-heading" style={{ margin: 0 }}>{cat.name as string}</div>
+                <Link href={`/category/${cat.slug as string}`} className="btn-primary">
+                  Бүгд харах
+                </Link>
+              </div>
+              <div className="articles-grid-2">
+                {catArticles.map((article) => (
+                  <ArticleCard key={article.id as string} article={article} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <aside className="sidebar">
+          {sidebarAds.length > 0 && <AdSlot ads={ads as unknown[]} placement="sidebar" className="sidebar-widget" />}
+
+          <div className="sidebar-widget">
+            <div className="sidebar-widget-title">Булангууд</div>
+            <div className="sidebar-widget-body">
+              {categories.map((cat) => (
+                <div key={cat.id as string} style={{ marginBottom: '0.5rem' }}>
+                  <Link href={`/category/${cat.slug as string}`} style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                    → {cat.name as string}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="sidebar-widget">
+            <div className="sidebar-widget-title">Сүүлийн мэдээ</div>
+            <div className="sidebar-widget-body">
+              {latest.slice(0, 5).map((article) => (
+                <ArticleCard key={article.id as string} article={article} horizontal size="sm" />
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
-      <div className="footer">
-        <p>Update this page by editing</p>
-        <a className="codeLink" href={fileURL}>
-          <code>app/(frontend)/page.tsx</code>
-        </a>
-      </div>
+    </>
+  )
+}
+
+function FeaturedHero({
+  article,
+  sidePieces,
+}: {
+  article: Record<string, unknown>
+  sidePieces: Record<string, unknown>[]
+}) {
+  const slug = article.slug as string
+  const title = article.title as string
+  const excerpt = article.excerpt as string | undefined
+  const publishedAt = article.publishedAt as string | undefined
+  const category = article.category as Record<string, unknown> | null | undefined
+  const imgUrl = getImageUrl(article.coverImage)
+
+  return (
+    <div style={{ marginBottom: '2rem' }}>
+      <article className="featured-hero">
+        {imgUrl && (
+          <Link href={`/news/${slug}`} className="featured-hero-image" style={{ position: 'relative', display: 'block' }}>
+            <Image src={imgUrl} alt={title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 100vw, 60vw" />
+          </Link>
+        )}
+        <div className="featured-hero-content">
+          {category && (
+            <Link href={`/category/${category.slug as string}`} className="cat-badge">
+              {category.name as string}
+            </Link>
+          )}
+          <Link href={`/news/${slug}`}>
+            <h2 className="article-title-lg">{title}</h2>
+          </Link>
+          {excerpt && <p className="article-excerpt">{excerpt}</p>}
+          <div className="article-meta">
+            {publishedAt && <span>{formatDate(publishedAt)}</span>}
+          </div>
+        </div>
+      </article>
+
+      {sidePieces.length > 0 && (
+        <div className="articles-grid" style={{ marginTop: '1.25rem' }}>
+          {sidePieces.map((a) => (
+            <ArticleCard key={a.id as string} article={a} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

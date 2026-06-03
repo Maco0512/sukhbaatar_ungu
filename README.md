@@ -1,67 +1,195 @@
-# Payload Blank Template
+# Сүхбаатарын Өнгө — News Website
 
-This template comes configured with the bare minimum to get started on anything you need.
+Public news website + CMS for **"Сүхбаатарын Өнгө"**, the local newspaper of
+Sükhbaatar aimag (Dariganga region), Mongolia.
 
-## Quick start
+**Stack:** Next.js 16 (App Router) · Payload CMS 3 · PostgreSQL (Neon) · Vercel Blob · Lexical rich text
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+---
 
-## Quick Start - local setup
+## Local Development
 
-To spin up this template locally, follow these steps:
+### Prerequisites
 
-### Clone
+- Node.js ≥ 20
+- A PostgreSQL database (Neon free tier works)
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+### Setup
 
-### Development
+```bash
+# 1. Install dependencies
+npm install
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+# 2. Copy env template and fill in values
+cp .env.example .env
+# Edit .env — see "Environment Variables" below
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+# 3. Start dev server
+npm run dev
+```
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+Open [http://localhost:3000](http://localhost:3000) for the front end and
+[http://localhost:3000/admin](http://localhost:3000/admin) for the CMS.
 
-#### Docker (Optional)
+On first load, Payload will prompt you to create the first admin user.
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+### Seed sample data
 
-To do so, follow these steps:
+After creating your admin user:
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+```bash
+npm run seed
+```
 
-## How it works
+This creates 5 categories, 2 authors, 5 sample articles, and 1 ad.
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+---
 
-### Collections
+## Environment Variables
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string (Neon pooled, with `?sslmode=require`) |
+| `PAYLOAD_SECRET` | Random secret — generate with `openssl rand -base64 32` |
+| `NEXT_PUBLIC_SERVER_URL` | Full public URL **with `https://`**, no trailing slash (e.g. `https://yoursite.vercel.app`) |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob read-write token (see Blob setup below) |
 
-- #### Users (Authentication)
+`.env.example`:
+```
+DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+PAYLOAD_SECRET=your-secret-here
+NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+BLOB_READ_WRITE_TOKEN=
+```
 
-  Users are auth-enabled collections that have access to the admin panel.
+---
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/3.x/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+## NPM Scripts
 
-- #### Media
+| Script | Purpose |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run seed` | Seed sample categories, authors, articles |
+| `npm run generate:types` | Regenerate Payload TypeScript types after schema changes |
+| `npm run generate:importmap` | Regenerate admin importmap after adding plugins |
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+---
 
-### Docker
+## CMS Collections
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
+| Collection | Slug | Purpose |
+|---|---|---|
+| Users | `users` | Admin access |
+| Media | `media` | Images with thumbnail/card/hero sizes |
+| Categories | `categories` | Section/bulан (e.g. Мэдээ, Нийгэм) |
+| Authors | `authors` | Journalist profiles |
+| Articles | `articles` | News articles with rich text, video embed |
+| Ads | `ads` | Banner ads with placement/date control |
 
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
+---
 
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
+## Public Routes
 
-## Questions
+| Route | Page |
+|---|---|
+| `/` | Home — featured + latest by category |
+| `/news/[slug]` | Article detail with JSON-LD, share buttons |
+| `/category/[slug]` | Category listing, paginated |
+| `/author/[slug]` | Author bio + articles |
+| `/search` | Full-text search with category/date filters |
+| `/multimedia` | Articles with video/podcast embeds |
+| `/about` | About the paper and contact |
+| `/feed.xml` | RSS feed |
+| `/sitemap.xml` | Sitemap |
+| `/robots.txt` | Robots |
 
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+---
+
+## Vercel Deployment Checklist
+
+### 1. Database — Neon PostgreSQL
+
+- Create a project on [neon.tech](https://neon.tech)
+- Use the **pooled** connection string (ending in `-pooler.neon.tech`)
+- Append `?sslmode=require` to the connection string
+- Set as `DATABASE_URL` in Vercel production env vars
+
+### 2. Media Storage — Vercel Blob
+
+> **Critical:** Several traps to avoid.
+
+1. In your Vercel project → **Storage** → Create a **Blob** store
+2. **Choose PUBLIC** — private blobs are not browser-accessible; images won't load on a public site
+3. Vercel sets `BLOB_STORE_ID`, `VERCEL_OIDC_TOKEN`, `BLOB_WEBHOOK_PUBLIC_KEY` automatically but does **NOT** auto-create `BLOB_READ_WRITE_TOKEN`
+4. Go to the Blob store settings → copy the **read-write token**
+5. Add it manually as `BLOB_READ_WRITE_TOKEN` in Vercel's production environment variables
+6. The Payload plugin is `enabled: true` unconditionally — do not gate it on the token
+
+Without this, uploads fail with `ENOENT: mkdir 'media'` because Vercel's filesystem is read-only.
+
+### 3. Environment Variables in Vercel
+
+Set these in **Project → Settings → Environment Variables → Production**:
+
+| Variable | Value |
+|---|---|
+| `PAYLOAD_SECRET` | `openssl rand -base64 32` |
+| `DATABASE_URL` | Neon pooled connection string with `?sslmode=require` |
+| `NEXT_PUBLIC_SERVER_URL` | `https://yourproject.vercel.app` — **must include `https://`**, no trailing slash. A bare hostname causes "Invalid URL" build crash. |
+| `BLOB_READ_WRITE_TOKEN` | From Blob store settings (manually added) |
+
+### 4. importMap — must be committed
+
+After any plugin change, regenerate and commit:
+
+```bash
+npm run generate:importmap
+git add src/app/\(payload\)/admin/importMap.js
+git commit -m "regenerate importmap"
+```
+
+If you skip this, the admin renders a blank page with "PayloadComponent not found in importMap".
+
+### 5. `force-dynamic` on all frontend pages
+
+All pages under `src/app/(frontend)/` that read Payload data export:
+
+```ts
+export const dynamic = 'force-dynamic'
+```
+
+This prevents Next.js from trying to prerender them at build time (which would fail — no DB during build).
+
+Do **not** add this to `app/(payload)/...` routes.
+
+### 6. Vercel plan
+
+Vercel Hobby is non-commercial. A newspaper is commercial content → use **Vercel Pro**.
+
+For heavier traffic or to avoid serverless cold-start delays on the admin panel, a VPS (cloud.mn or similar) with Payload running as a Node server is a better long-term target. Keep media on Vercel Blob or S3 either way.
+
+---
+
+## After Deployment
+
+1. Open `https://yoursite.vercel.app/admin` and create the first admin user
+2. Create categories (Булан) — set slugs like `medee`, `niigem`, `ued`
+3. Create author profiles (Сэтгүүлч)
+4. Publish articles (Нийтлэл) — set Status = Нийтэлсэн and tick Онцлох for featured ones
+5. Add ads (Сурталчилгаа) with placement = sidebar/header
+
+---
+
+## Schema Changes Workflow
+
+After editing a collection in `src/collections/`:
+
+```bash
+npm run generate:types     # update TypeScript types
+npm run generate:importmap # update admin importmap (if plugins changed)
+git add -A && git commit -m "update schema"
+```
+
+Payload auto-migrates the database on server start (dev) or you can run `npm run payload migrate` manually.
