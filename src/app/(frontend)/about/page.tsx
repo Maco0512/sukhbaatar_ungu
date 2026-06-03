@@ -65,7 +65,7 @@ export default function AboutPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               <span style={{ width: 24, color: 'var(--accent)', fontWeight: 700 }}>📍</span>
-              <span style={{ color: 'var(--text-muted)' }}>Сүхбаатар аймаг, Дариганга сум, Монгол Улс</span>
+              <span style={{ color: 'var(--text-muted)' }}>Сүхбаатар аймаг, Баруун-Урт сум, Монгол Улс</span>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               <span style={{ width: 24, color: 'var(--accent)', fontWeight: 700 }}>📘</span>

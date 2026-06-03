@@ -12,7 +12,7 @@ function SiteHeader() {
     <header className="site-header">
       <div className="topbar">
         <div className="topbar-inner">
-          <span>Сүхбаатар аймаг, Дариганга</span>
+          <span>Сүхбаатар аймаг</span>
           <span>
             <a href="https://facebook.com/sukhbaatar.ungu" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.85)' }}>
               Facebook
