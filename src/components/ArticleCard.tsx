@@ -31,14 +31,13 @@ export function ArticleCard({ article, size = 'md', horizontal = false }: Articl
     return (
       <div className="article-list-item">
         {imgUrl && (
-          <Link href={`/news/${slug}`}>
+          <Link href={`/news/${slug}`} style={{ flexShrink: 0 }}>
             <Image
               src={imgUrl}
               alt={title}
-              width={100}
-              height={70}
+              width={90}
+              height={65}
               className="article-list-image"
-              style={{ objectFit: 'cover', borderRadius: 4 }}
             />
           </Link>
         )}

@@ -145,15 +145,28 @@ function FeaturedHero({
   const title = article.title as string
   const excerpt = article.excerpt as string | undefined
   const publishedAt = article.publishedAt as string | undefined
+  const author = article.author as Record<string, unknown> | null | undefined
   const category = article.category as Record<string, unknown> | null | undefined
   const imgUrl = getImageUrl(article.coverImage)
 
+  const heroClass = imgUrl ? 'featured-hero' : 'featured-hero featured-hero--no-image'
+
   return (
-    <div style={{ marginBottom: '2rem' }}>
-      <article className="featured-hero">
+    <section className="featured-section">
+      <div className="section-heading">Онцлох мэдээ</div>
+
+      {/* Main featured article */}
+      <article className={heroClass}>
         {imgUrl && (
-          <Link href={`/news/${slug}`} className="featured-hero-image" style={{ position: 'relative', display: 'block' }}>
-            <Image src={imgUrl} alt={title} fill style={{ objectFit: 'cover' }} sizes="(max-width: 900px) 100vw, 60vw" />
+          <Link href={`/news/${slug}`} className="featured-hero-image">
+            <Image
+              src={imgUrl}
+              alt={title}
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 900px) 100vw, 55vw"
+              priority
+            />
           </Link>
         )}
         <div className="featured-hero-content">
@@ -167,18 +180,27 @@ function FeaturedHero({
           </Link>
           {excerpt && <p className="article-excerpt">{excerpt}</p>}
           <div className="article-meta">
+            {author && (
+              <Link href={`/author/${(author.slug as string)}`} style={{ fontWeight: 600 }}>
+                {author.name as string}
+              </Link>
+            )}
             {publishedAt && <span>{formatDate(publishedAt)}</span>}
           </div>
+          <Link href={`/news/${slug}`} className="btn-primary" style={{ alignSelf: 'flex-start', marginTop: '0.25rem' }}>
+            Дэлгэрэнгүй үзэх →
+          </Link>
         </div>
       </article>
 
+      {/* Side pieces — smaller cards in a horizontal row */}
       {sidePieces.length > 0 && (
-        <div className="articles-grid" style={{ marginTop: '1.25rem' }}>
+        <div className="featured-side-grid">
           {sidePieces.map((a) => (
-            <ArticleCard key={a.id as string} article={a} />
+            <ArticleCard key={a.id as string} article={a} size="sm" />
           ))}
         </div>
       )}
-    </div>
+    </section>
   )
 }

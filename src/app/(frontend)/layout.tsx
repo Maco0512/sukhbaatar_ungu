@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import { getPayloadClient } from '@/lib/payload'
 import './styles.css'
 
 export const metadata = {
@@ -7,7 +8,24 @@ export const metadata = {
   description: 'Сүхбаатар аймгийн орон нутгийн сонин',
 }
 
-function SiteHeader() {
+async function SiteHeader() {
+  // Fetch categories at render-time so the nav always matches the DB
+  let categories: Array<{ name: string; slug: string }> = []
+  try {
+    const payload = await getPayloadClient()
+    const res = await payload.find({
+      collection: 'categories',
+      sort: 'order',
+      limit: 10,
+    })
+    categories = res.docs.map((c) => ({
+      name: c.name as string,
+      slug: c.slug as string,
+    }))
+  } catch {
+    // DB unavailable during build — use empty list; static fallback below
+  }
+
   return (
     <header className="site-header">
       <div className="topbar">
@@ -27,9 +45,11 @@ function SiteHeader() {
         </Link>
         <nav className="site-nav" id="site-nav">
           <Link href="/">Нүүр</Link>
-          <Link href="/category/medee">Мэдээ</Link>
-          <Link href="/category/niigem">Нийгэм</Link>
-          <Link href="/category/ued">Үйл явдал</Link>
+          {categories.map((cat) => (
+            <Link key={cat.slug} href={`/category/${cat.slug}`}>
+              {cat.name}
+            </Link>
+          ))}
           <Link href="/multimedia">Мультимедиа</Link>
           <Link href="/search">Хайлт</Link>
           <Link href="/about">Бидний тухай</Link>
@@ -73,7 +93,7 @@ function SiteFooter() {
             <li><Link href="/category/medee">Мэдээ</Link></li>
             <li><Link href="/category/niigem">Нийгэм</Link></li>
             <li><Link href="/category/ued">Үйл явдал</Link></li>
-            <li><Link href="/category/tsetserleg">Цэцэрлэг</Link></li>
+            <li><Link href="/category/soiol">Соёл</Link></li>
             <li><Link href="/multimedia">Мультимедиа</Link></li>
           </ul>
         </div>

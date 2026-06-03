@@ -203,6 +203,9 @@ export interface Media {
 export interface Category {
   id: number;
   name: string;
+  /**
+   * Автоматаар үүснэ. Зөвхөн a-z, 0-9, дефис зөвшөөрнө.
+   */
   slug: string;
   description?: string | null;
   order?: number | null;
@@ -216,6 +219,9 @@ export interface Category {
 export interface Author {
   id: number;
   name: string;
+  /**
+   * Автоматаар үүснэ. Зөвхөн a-z, 0-9, дефис зөвшөөрнө.
+   */
   slug: string;
   photo?: (number | null) | Media;
   role?: string | null;
@@ -231,6 +237,9 @@ export interface Author {
 export interface Article {
   id: number;
   title: string;
+  /**
+   * Гарчгаас автоматаар үүснэ. Зөвхөн a-z, 0-9, дефис.
+   */
   slug: string;
   excerpt?: string | null;
   content?: {
