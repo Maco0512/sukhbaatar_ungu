@@ -4,11 +4,12 @@ import Image from 'next/image'
 import type { Metadata } from 'next'
 import { getPayloadClient, formatDate, getImageUrl, getActiveAds, asRecords } from '@/lib/payload'
 import { ArticleCard } from '@/components/ArticleCard'
+import { AdSlot } from '@/components/AdSlot'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Сүхбаатарын Өнгө',
+  title: 'Сүхбаатарын Өнгө — Нүүр хуудас',
   description: 'Сүхбаатар аймгийн орон нутгийн сонин. Дариганга болон аймгийн мэдээ, нийгэм, соёл.',
   openGraph: {
     title: 'Сүхбаатарын Өнгө',
@@ -20,29 +21,19 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const payload = await getPayloadClient()
 
-  const [allRes, multimediaRes, categoriesRes, adsRes] = await Promise.all([
-    // All recent published articles — used for lead, top stories, and category sections
+  const [articlesRes, categoriesRes, adsRes] = await Promise.all([
     payload.find({
       collection: 'articles',
       where: { status: { equals: 'published' } },
       sort: '-publishedAt',
-      limit: 60,
+      limit: 20,
       depth: 2,
     }),
-    // Multimedia — articles that have a video embed
     payload.find({
-      collection: 'articles',
-      where: {
-        and: [
-          { status: { equals: 'published' } },
-          { videoEmbedUrl: { exists: true } },
-        ],
-      },
-      sort: '-publishedAt',
-      limit: 4,
-      depth: 2,
+      collection: 'categories',
+      sort: 'order',
+      limit: 10,
     }),
-    payload.find({ collection: 'categories', sort: 'order', limit: 10 }),
     payload.find({
       collection: 'ads',
       where: { active: { equals: true } },
@@ -51,136 +42,165 @@ export default async function HomePage() {
     }),
   ])
 
-  const articles  = asRecords(allRes.docs)
+  const articles = asRecords(articlesRes.docs)
   const categories = asRecords(categoriesRes.docs)
-  const multimedia = asRecords(multimediaRes.docs)
   const ads = adsRes.docs
 
-  // Lead: most recent featured article, fallback to latest
-  const featured = articles.filter((a) => a.featured)
-  const lead = featured[0] ?? articles[0]
+  const featured = articles.filter((a) => a.featured).slice(0, 4)
+  const mainFeatured = featured[0] ?? articles[0]
+  const sideFeatured = featured.slice(1, 4)
+  const latest = articles.slice(0, 10)
 
-  // Top stories: next 4 articles excluding the lead
-  const topStories = articles.filter((a) => a.id !== lead?.id).slice(0, 4)
-
-  // Per-category sections (up to 3 articles each; exclude the lead article)
-  const sectionData = categories
-    .map((cat) => ({
-      cat,
-      articles: articles
-        .filter((a) => {
-          const c = a.category as Record<string, unknown> | null
-          return c && c.id === cat.id && a.id !== lead?.id
-        })
-        .slice(0, 3),
-    }))
-    .filter((s) => s.articles.length > 0)
+  const articlesByCategory = categories.map((cat) => ({
+    cat,
+    articles: articles
+      .filter((a) => {
+        const c = a.category as Record<string, unknown> | null
+        return c && c.id === cat.id
+      })
+      .slice(0, 4),
+  })).filter((g) => g.articles.length > 0)
 
   const headerAds = getActiveAds(ads as unknown[], 'header')
   const sidebarAds = getActiveAds(ads as unknown[], 'sidebar')
-  const firstSidebarAd = sidebarAds[0] as Record<string, unknown> | undefined
 
   return (
-    <div className="home-wrapper">
-
-      {/* 1 ─── Top banner ad */}
+    <>
       {headerAds.length > 0 && (
-        <div className="home-header-ad">
-          {headerAds.map((ad, i) => {
-            const a = ad as Record<string, unknown>
-            const imgUrl = getImageUrl(a.image)
-            if (!imgUrl) return null
-            const content = (
-              <Image key={i} src={imgUrl} alt={(a.name as string) || 'Сурталчилгаа'} width={970} height={90} style={{ maxWidth: '100%', height: 'auto' }} />
-            )
-            return typeof a.linkUrl === 'string'
-              ? <a key={i} href={a.linkUrl} target="_blank" rel="noopener noreferrer sponsored">{content}</a>
-              : content
-          })}
-        </div>
-      )}
-
-      {/* 2 ─── Lead story + Top stories strip */}
-      {lead && (
-        <div className="home-lead-row">
-          <ArticleCard article={lead} variant="lead" priority />
-          <div className="top-stories-col">
-            <span className="top-stories-label">Топ мэдээ</span>
-            {topStories.map((a) => (
-              <ArticleCard key={a.id as string} article={a} variant="top" />
-            ))}
+        <div className="header-ad">
+          <div className="container">
+            <AdSlot ads={ads as unknown[]} placement="header" />
           </div>
         </div>
       )}
 
-      {/* 3 ─── Section blocks */}
-      <div className="home-sections">
-        {sectionData.map((section, idx) => {
-          const catName = section.cat.name as string
-          const catSlug = section.cat.slug as string
+      <div className="content-grid">
+        <div>
+          {mainFeatured && <FeaturedHero article={mainFeatured} sidePieces={sideFeatured} />}
 
-          const block = (
-            <div className="section-block-bbc">
-              <div className="section-header-bar">
-                <h2>{catName}</h2>
-                <Link href={`/category/${catSlug}`} className="section-see-all">
-                  Бүгдийг үзэх →
+          <hr className="divider" />
+
+          <div className="section-heading">Сүүлийн мэдээ</div>
+          <div className="articles-grid">
+            {latest.slice(0, 6).map((article) => (
+              <ArticleCard key={article.id as string} article={article} />
+            ))}
+          </div>
+
+          {articlesByCategory.map(({ cat, articles: catArticles }) => (
+            <div key={cat.id as string} style={{ marginBottom: '2.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div className="section-heading" style={{ margin: 0 }}>{cat.name as string}</div>
+                <Link href={`/category/${cat.slug as string}`} className="btn-primary">
+                  Бүгд харах
                 </Link>
               </div>
-              <div className="section-cards-grid">
-                {section.articles.map((a) => (
-                  <ArticleCard key={a.id as string} article={a} variant="section" />
+              <div className="articles-grid-2">
+                {catArticles.map((article) => (
+                  <ArticleCard key={article.id as string} article={article} />
                 ))}
               </div>
             </div>
-          )
+          ))}
+        </div>
 
-          // Place sidebar ad beside the first section that has articles
-          if (idx === 0 && firstSidebarAd) {
-            const adImgUrl = getImageUrl(firstSidebarAd.image)
-            return (
-              <div key={catSlug} className="section-with-sidebar">
-                {block}
-                <aside className="sidebar-ad-widget">
-                  <p className="sidebar-ad-widget-label">Сурталчилгаа</p>
-                  {adImgUrl && (
-                    typeof firstSidebarAd.linkUrl === 'string' ? (
-                      <a href={firstSidebarAd.linkUrl as string} target="_blank" rel="noopener noreferrer sponsored">
-                        <Image src={adImgUrl} alt={(firstSidebarAd.name as string) || ''} width={240} height={320} style={{ width: '100%', height: 'auto', borderRadius: 2 }} />
-                      </a>
-                    ) : (
-                      <Image src={adImgUrl} alt={(firstSidebarAd.name as string) || ''} width={240} height={320} style={{ width: '100%', height: 'auto', borderRadius: 2 }} />
-                    )
-                  )}
-                </aside>
-              </div>
-            )
-          }
+        <aside className="sidebar">
+          {sidebarAds.length > 0 && <AdSlot ads={ads as unknown[]} placement="sidebar" className="sidebar-widget" />}
 
-          return <div key={catSlug}>{block}</div>
-        })}
+          <div className="sidebar-widget">
+            <div className="sidebar-widget-title">Булангууд</div>
+            <div className="sidebar-widget-body">
+              {categories.map((cat) => (
+                <div key={cat.id as string} style={{ marginBottom: '0.5rem' }}>
+                  <Link href={`/category/${cat.slug as string}`} style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                    → {cat.name as string}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="sidebar-widget">
+            <div className="sidebar-widget-title">Сүүлийн мэдээ</div>
+            <div className="sidebar-widget-body">
+              {latest.slice(0, 5).map((article) => (
+                <ArticleCard key={article.id as string} article={article} horizontal size="sm" />
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
+    </>
+  )
+}
 
-      {/* 4 ─── Multimedia strip */}
-      {multimedia.length > 0 && (
-        <section className="multimedia-strip">
-          <div className="multimedia-strip-header">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--accent)">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            <span className="multimedia-strip-title">Мультимедиа</span>
-            <Link href="/multimedia" className="section-see-all" style={{ marginLeft: 'auto' }}>
-              Бүгдийг үзэх →
+function FeaturedHero({
+  article,
+  sidePieces,
+}: {
+  article: Record<string, unknown>
+  sidePieces: Record<string, unknown>[]
+}) {
+  const slug = article.slug as string
+  const title = article.title as string
+  const excerpt = article.excerpt as string | undefined
+  const publishedAt = article.publishedAt as string | undefined
+  const author = article.author as Record<string, unknown> | null | undefined
+  const category = article.category as Record<string, unknown> | null | undefined
+  const imgUrl = getImageUrl(article.coverImage)
+
+  const heroClass = imgUrl ? 'featured-hero' : 'featured-hero featured-hero--no-image'
+
+  return (
+    <section className="featured-section">
+      <div className="section-heading">Онцлох мэдээ</div>
+
+      {/* Main featured article */}
+      <article className={heroClass}>
+        {imgUrl && (
+          <Link href={`/news/${slug}`} className="featured-hero-image">
+            <Image
+              src={imgUrl}
+              alt={title}
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 900px) 100vw, 55vw"
+              priority
+            />
+          </Link>
+        )}
+        <div className="featured-hero-content">
+          {category && (
+            <Link href={`/category/${category.slug as string}`} className="cat-badge">
+              {category.name as string}
             </Link>
+          )}
+          <Link href={`/news/${slug}`}>
+            <h2 className="article-title-lg">{title}</h2>
+          </Link>
+          {excerpt && <p className="article-excerpt">{excerpt}</p>}
+          <div className="article-meta">
+            {author && (
+              <Link href={`/author/${(author.slug as string)}`} style={{ fontWeight: 600 }}>
+                {author.name as string}
+              </Link>
+            )}
+            {publishedAt && <span>{formatDate(publishedAt)}</span>}
           </div>
-          <div className="multimedia-grid">
-            {multimedia.map((a) => (
-              <ArticleCard key={a.id as string} article={a} variant="multimedia" />
-            ))}
-          </div>
-        </section>
-      )}
+          <Link href={`/news/${slug}`} className="btn-primary" style={{ alignSelf: 'flex-start', marginTop: '0.25rem' }}>
+            Дэлгэрэнгүй үзэх →
+          </Link>
+        </div>
+      </article>
 
-    </div>
+      {/* Side pieces — smaller cards in a horizontal row */}
+      {sidePieces.length > 0 && (
+        <div className="featured-side-grid">
+          {sidePieces.map((a) => (
+            <ArticleCard key={a.id as string} article={a} size="sm" />
+          ))}
+        </div>
+      )}
+    </section>
   )
 }

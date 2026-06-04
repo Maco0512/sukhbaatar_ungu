@@ -23,17 +23,9 @@ export function formatDate(date: string | Date | null | undefined): string {
   }).format(new Date(date))
 }
 
-export function getImageUrl(
-  image: unknown,
-  preferSize?: 'thumbnail' | 'card' | 'hero',
-): string | null {
+export function getImageUrl(image: unknown): string | null {
   if (!image || typeof image !== 'object') return null
   const img = image as Record<string, unknown>
-  if (preferSize) {
-    const sizes = img.sizes as Record<string, { url?: string }> | undefined
-    const sized = sizes?.[preferSize]?.url
-    if (sized) return sized
-  }
   if (typeof img.url === 'string') return img.url
   return null
 }
