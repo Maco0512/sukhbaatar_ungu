@@ -42,19 +42,19 @@ export default async function HomePage() {
     }),
   ])
 
-  const articles  = asRecords(articlesRes.docs)
+  const articles   = asRecords(articlesRes.docs)
   const categories = asRecords(categoriesRes.docs)
-  const ads = adsRes.docs
+  const ads        = adsRes.docs
 
-  // Lead: first featured article, fallback to latest
+  // Lead story
   const featured = articles.filter((a) => a.featured)
-  const lead = featured[0] ?? articles[0]
-  const leadId = lead?.id
+  const lead    = featured[0] ?? articles[0]
+  const leadId  = lead?.id
 
-  // Top stories: next 4 articles after the lead
-  const topStories = articles.filter((a) => a.id !== leadId).slice(0, 4)
+  // Right column: most recent articles (excluding lead)
+  const recentNews = articles.filter((a) => a.id !== leadId).slice(0, 6)
 
-  // Per-category sections: max 3 articles each, lead excluded to avoid duplication
+  // Category blocks below hero (lead excluded)
   const categoryGroups = categories
     .map((cat) => ({
       cat,
@@ -68,31 +68,30 @@ export default async function HomePage() {
     .filter((g) => g.articles.length > 0)
 
   const headerAds = getActiveAds(ads as unknown[], 'header')
-  const sidebarAds = getActiveAds(ads as unknown[], 'sidebar')
 
   return (
     <>
-      {/* Header Ad */}
+      {/* Full-width leaderboard ad */}
       {headerAds.length > 0 && (
-        <div className="header-ad">
-          <div className="container">
-            <AdSlot ads={ads as unknown[]} placement="header" />
-          </div>
+        <div className="ad-leaderboard">
+          <p className="ad-leaderboard-label">Сайт сурталчилгаа</p>
+          <AdSlot ads={ads as unknown[]} placement="header" />
         </div>
       )}
 
-      <div className="content-grid">
-        {/* ── Main column ── */}
-        <div>
-          {/* 1. Lead story + Top stories */}
-          {lead && (
-            <div className="home-lead-row">
-              <LeadStory article={lead} />
-              <TopStoriesPanel articles={topStories} />
-            </div>
-          )}
+      {/* Hero: wide lead story (left) + Сүүлийн мэдээ list (right) */}
+      {lead && (
+        <section className="home-hero-section">
+          <div className="home-hero-inner">
+            <LeadStory article={lead} />
+            <RecentNewsPanel articles={recentNews} />
+          </div>
+        </section>
+      )}
 
-          {/* 2. Category section blocks */}
+      {/* Category section blocks */}
+      {categoryGroups.length > 0 && (
+        <div className="home-body">
           {categoryGroups.map(({ cat, articles: catArticles }) => (
             <div key={cat.id as string} className="cat-block">
               <div className="cat-block-header">
@@ -109,57 +108,20 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
-
-        {/* ── Sidebar ── */}
-        <aside className="sidebar">
-          {sidebarAds.length > 0 && (
-            <AdSlot ads={ads as unknown[]} placement="sidebar" className="sidebar-widget" />
-          )}
-
-          <div className="sidebar-widget">
-            <div className="sidebar-widget-title">Булангууд</div>
-            <div className="sidebar-widget-body">
-              {categories.map((cat) => (
-                <div key={cat.id as string} style={{ marginBottom: '0.5rem' }}>
-                  <Link
-                    href={`/category/${cat.slug as string}`}
-                    style={{ fontWeight: 600, fontSize: '0.9rem' }}
-                  >
-                    → {cat.name as string}
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="sidebar-widget">
-            <div className="sidebar-widget-title">Сүүлийн мэдээ</div>
-            <div className="sidebar-widget-body">
-              {articles.slice(0, 6).map((article) => (
-                <ArticleCard
-                  key={article.id as string}
-                  article={article}
-                  horizontal
-                  size="sm"
-                />
-              ))}
-            </div>
-          </div>
-        </aside>
-      </div>
+      )}
     </>
   )
 }
 
-/* ─── Lead story component ─────────────────────────────────────────────────── */
+/* ─── Lead story (left, wide) ──────────────────────────────────────────────── */
 function LeadStory({ article }: { article: Record<string, unknown> }) {
-  const slug = article.slug as string
-  const title = article.title as string
-  const excerpt = article.excerpt as string | undefined
+  const slug       = article.slug as string
+  const title      = article.title as string
+  const excerpt    = article.excerpt as string | undefined
   const publishedAt = article.publishedAt as string | undefined
-  const category = article.category as Record<string, unknown> | null | undefined
-  const author = article.author as Record<string, unknown> | null | undefined
-  const imgUrl = getImageUrl(article.coverImage)
+  const category   = article.category as Record<string, unknown> | null | undefined
+  const author     = article.author as Record<string, unknown> | null | undefined
+  const imgUrl     = getImageUrl(article.coverImage)
 
   return (
     <article className="lead-story">
@@ -169,7 +131,7 @@ function LeadStory({ article }: { article: Record<string, unknown> }) {
             src={imgUrl}
             alt={title}
             fill
-            sizes="(max-width: 900px) 100vw, 55vw"
+            sizes="(max-width: 900px) 100vw, 65vw"
             style={{ objectFit: 'cover' }}
             priority
           />
@@ -185,13 +147,22 @@ function LeadStory({ article }: { article: Record<string, unknown> }) {
           <h2 className="lead-story-title">{title}</h2>
         </Link>
         {excerpt && <p className="lead-story-excerpt">{excerpt}</p>}
-        <div className="article-meta">
+        <div className="meta-line">
           {author && (
-            <Link href={`/author/${author.slug as string}`} style={{ fontWeight: 600 }}>
-              {author.name as string}
-            </Link>
+            <>
+              <Link href={`/author/${author.slug as string}`} style={{ fontWeight: 600, color: 'var(--text)' }}>
+                {author.name as string}
+              </Link>
+              <span className="meta-sep">·</span>
+            </>
           )}
           {publishedAt && <span>{formatDate(publishedAt)}</span>}
+          {category && (
+            <>
+              <span className="meta-sep">|</span>
+              <Link href={`/category/${category.slug as string}`}>{category.name as string}</Link>
+            </>
+          )}
         </div>
         <Link href={`/news/${slug}`} className="lead-story-readmore">
           Дэлгэрэнгүй →
@@ -201,43 +172,50 @@ function LeadStory({ article }: { article: Record<string, unknown> }) {
   )
 }
 
-/* ─── Top stories panel ────────────────────────────────────────────────────── */
-function TopStoriesPanel({ articles }: { articles: Record<string, unknown>[] }) {
+/* ─── Сүүлийн мэдээ list (right column) ────────────────────────────────────── */
+function RecentNewsPanel({ articles }: { articles: Record<string, unknown>[] }) {
   if (!articles.length) return null
 
   return (
-    <div className="top-stories-panel">
-      <div className="top-stories-panel-title">Топ мэдээ</div>
+    <nav className="recent-news-panel" aria-label="Сүүлийн мэдээ">
+      <div className="recent-news-panel-title">Сүүлийн мэдээ</div>
+
       {articles.map((article) => {
-        const slug = article.slug as string
-        const title = article.title as string
+        const slug       = article.slug as string
+        const title      = article.title as string
+        const excerpt    = article.excerpt as string | undefined
         const publishedAt = article.publishedAt as string | undefined
-        const category = article.category as Record<string, unknown> | null | undefined
-        const catName = category?.name as string | undefined
-        const catSlug = category?.slug as string | undefined
+        const category   = article.category as Record<string, unknown> | null | undefined
+        const catName    = category?.name as string | undefined
+        const catSlug    = category?.slug as string | undefined
+        const hasVideo   = !!(article.videoEmbedUrl)
 
         return (
-          <div key={article.id as string} className="top-story-item">
-            {catName && catSlug && (
-              <Link
-                href={`/category/${catSlug}`}
-                className="cat-badge"
-                style={{ fontSize: '0.62rem', marginBottom: '0.1rem', display: 'inline-block' }}
-              >
-                {catName}
-              </Link>
-            )}
-            <Link href={`/news/${slug}`} className="top-story-headline">
+          <div key={article.id as string} className="recent-news-item">
+            {/* Headline */}
+            <Link href={`/news/${slug}`} className="recent-news-headline">
+              {hasVideo && <span className="video-icon">▶</span>}
               {title}
             </Link>
-            {publishedAt && (
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-light)' }}>
-                {formatDate(publishedAt)}
-              </span>
+
+            {/* 1–2 line summary */}
+            {excerpt && (
+              <p className="recent-news-excerpt">{excerpt}</p>
             )}
+
+            {/* date | category */}
+            <div className="recent-news-meta">
+              {publishedAt && <span>{formatDate(publishedAt)}</span>}
+              {catName && catSlug && (
+                <>
+                  <span className="meta-sep">|</span>
+                  <Link href={`/category/${catSlug}`}>{catName}</Link>
+                </>
+              )}
+            </div>
           </div>
         )
       })}
-    </div>
+    </nav>
   )
 }

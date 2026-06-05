@@ -16,8 +16,7 @@ export function ArticleCard({ article, size = 'md', horizontal = false }: Articl
   const publishedAt = article.publishedAt as string | undefined
   const category = article.category as Record<string, unknown> | null | undefined
   const author = article.author as Record<string, unknown> | null | undefined
-  const coverImage = article.coverImage
-  const imgUrl = getImageUrl(coverImage)
+  const imgUrl = getImageUrl(article.coverImage)
 
   const catName = category?.name as string | undefined
   const catSlug = category?.slug as string | undefined
@@ -35,22 +34,22 @@ export function ArticleCard({ article, size = 'md', horizontal = false }: Articl
             <Image
               src={imgUrl}
               alt={title}
-              width={90}
-              height={65}
+              width={76}
+              height={54}
               className="article-list-image"
             />
           </Link>
         )}
         <div>
           {catName && catSlug && (
-            <Link href={`/category/${catSlug}`} className="cat-badge" style={{ marginBottom: '0.3rem', display: 'inline-block' }}>
+            <Link href={`/category/${catSlug}`} className="cat-badge" style={{ marginBottom: '0.25rem', display: 'inline-block' }}>
               {catName}
             </Link>
           )}
           <Link href={`/news/${slug}`}>
             <div className={titleClass}>{title}</div>
           </Link>
-          <div className="article-meta" style={{ marginTop: '0.3rem' }}>
+          <div className="meta-line" style={{ marginTop: '0.3rem' }}>
             {publishedAt && <span>{formatDate(publishedAt)}</span>}
           </div>
         </div>
@@ -62,7 +61,7 @@ export function ArticleCard({ article, size = 'md', horizontal = false }: Articl
     <article className="article-card">
       {imgUrl && (
         <Link href={`/news/${slug}`} className="article-card-image">
-          <Image src={imgUrl} alt={title} width={768} height={512} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <Image src={imgUrl} alt={title} width={768} height={432} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </Link>
       )}
       <div className="article-card-body">
@@ -75,11 +74,20 @@ export function ArticleCard({ article, size = 'md', horizontal = false }: Articl
         {excerpt && size !== 'sm' && (
           <p className="article-excerpt">{excerpt.slice(0, 120)}{excerpt.length > 120 ? '…' : ''}</p>
         )}
-        <div className="article-meta">
-          {authorName && authorSlug && (
-            <Link href={`/author/${authorSlug}`}>{authorName}</Link>
-          )}
+        <div className="meta-line">
           {publishedAt && <span>{formatDate(publishedAt)}</span>}
+          {catName && catSlug && (
+            <>
+              <span className="meta-sep">|</span>
+              <Link href={`/category/${catSlug}`}>{catName}</Link>
+            </>
+          )}
+          {authorName && authorSlug && size === 'lg' && (
+            <>
+              <span className="meta-sep">·</span>
+              <Link href={`/author/${authorSlug}`}>{authorName}</Link>
+            </>
+          )}
         </div>
       </div>
     </article>
