@@ -1,7 +1,21 @@
 import React from 'react'
 import Link from 'next/link'
+import { Noto_Serif, Inter } from 'next/font/google'
 import { getPayloadClient } from '@/lib/payload'
 import './styles.css'
+
+const serif = Noto_Serif({
+  subsets: ['cyrillic', 'cyrillic-ext', 'latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-serif',
+  display: 'swap',
+})
+
+const sans = Inter({
+  subsets: ['cyrillic', 'cyrillic-ext', 'latin'],
+  variable: '--font-sans',
+  display: 'swap',
+})
 
 export const metadata = {
   title: 'Сүхбаатарын Өнгө',
@@ -88,7 +102,7 @@ function SiteFooter() {
           </a>
         </div>
         <div>
-          <div className="footer-heading">Хэлтэс</div>
+          <div className="footer-heading">Төрөл</div>
           <ul className="footer-links">
             <li><Link href="/category/medee">Мэдээ</Link></li>
             <li><Link href="/category/niigem">Нийгэм</Link></li>
@@ -118,7 +132,7 @@ function SiteFooter() {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="mn">
+    <html lang="mn" className={`${serif.variable} ${sans.variable}`}>
       <body>
         <SiteHeader />
         <main className="page-main">{children}</main>

@@ -125,7 +125,7 @@ function LeadStory({ article }: { article: Record<string, unknown> }) {
 
   return (
     <article className="lead-story">
-      {imgUrl && (
+      {imgUrl ? (
         <Link href={`/news/${slug}`} className="lead-story-image">
           <Image
             src={imgUrl}
@@ -136,6 +136,8 @@ function LeadStory({ article }: { article: Record<string, unknown> }) {
             priority
           />
         </Link>
+      ) : (
+        <div className="lead-story-image" />
       )}
       <div className="lead-story-body">
         {category && (
