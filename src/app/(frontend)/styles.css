@@ -144,6 +144,7 @@ a:hover { color: var(--accent); }
   padding: 0.6rem 1.25rem 0.75rem;
   text-align: center;
   background: var(--bg-subtle);
+  margin-bottom: 3rem;
 }
 .ad-leaderboard-label {
   font-size: 0.62rem;
@@ -156,8 +157,17 @@ a:hover { color: var(--accent); }
 .ad-leaderboard .ad-slot {
   border: none;
   background: transparent;
-  max-width: 728px;
+  max-width: 970px;
   margin: 0 auto;
+  height: 160px;
+  overflow: hidden;
+}
+.ad-leaderboard .ad-slot > *,
+.ad-leaderboard .ad-slot > * > * {
+  width: 100% !important;
+  height: 160px !important;
+  object-fit: contain !important;
+  display: block;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -566,8 +576,9 @@ a:hover { color: var(--accent); }
 /* ─── Hero: wide lead (left) + Сүүлийн мэдээ list (right) ─── */
 .home-hero-section {
   border-bottom: 1px solid var(--border);
+  padding-top: 1rem;
   padding-bottom: 2rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
 }
 .home-hero-inner {
   display: grid;
@@ -700,7 +711,7 @@ a:hover { color: var(--accent); }
 .recent-news-meta a:hover { color: var(--accent); }
 
 /* ─── Category section blocks ─── */
-.cat-block { margin-bottom: 2.5rem; }
+.cat-block { margin-bottom: 3rem; }
 .cat-block-header {
   display: flex;
   align-items: baseline;
