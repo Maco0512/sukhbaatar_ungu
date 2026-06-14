@@ -68,7 +68,7 @@ a:hover { color: var(--accent); }
 }
 
 /* Logo */
-.site-logo { display: flex; flex-direction: column; line-height: 1.1; }
+.site-logo { display: flex; flex-direction: column; line-height: 1.2; }
 .site-logo-mn {
   font-family: var(--font-serif);
   font-size: 1.55rem;
