@@ -1,21 +1,8 @@
 import React from 'react'
 import Link from 'next/link'
-import { Noto_Serif, Inter } from 'next/font/google'
+import Image from 'next/image'
 import { getPayloadClient } from '@/lib/payload'
 import './styles.css'
-
-const serif = Noto_Serif({
-  subsets: ['cyrillic', 'cyrillic-ext', 'latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-serif',
-  display: 'swap',
-})
-
-const sans = Inter({
-  subsets: ['cyrillic', 'cyrillic-ext', 'latin'],
-  variable: '--font-sans',
-  display: 'swap',
-})
 
 export const metadata = {
   title: 'Сүхбаатарын Өнгө',
@@ -42,20 +29,24 @@ async function SiteHeader() {
 
   return (
     <header className="site-header">
-      <div className="topbar">
-        <div className="topbar-inner">
-          <span>Сүхбаатар аймаг</span>
-          <span>
-            <a href="https://facebook.com/sukhbaatar.ungu" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.85)' }}>
-              Facebook
-            </a>
-          </span>
-        </div>
-      </div>
       <div className="header-inner">
         <Link href="/" className="site-logo">
-          <span className="site-logo-mn">Сүхбаатарын Өнгө</span>
-          <span className="site-logo-sub">Сүхбаатар аймгийн сонин</span>
+          <Image
+            src="/logo.jpg"
+            alt="Сүхбаатарын Өнгө"
+            width={96}
+            height={96}
+            quality={90}
+            className="site-logo-img"
+            priority
+          />
+          <span className="site-logo-text">
+            <span className="site-logo-mn">
+              <span style={{ color: '#e40a03' }}>Сүхбаатарын</span>{' '}
+              <span style={{ color: '#1664de' }}>Өнгө</span>
+            </span>
+            <span className="site-logo-sub">Сүхбаатар аймгийн чөлөөт хэвлэл</span>
+          </span>
         </Link>
         <nav className="site-nav" id="site-nav">
           <Link href="/">Нүүр</Link>
@@ -86,19 +77,22 @@ function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-grid">
         <div>
-          <div className="footer-brand-name">Сүхбаатарын Өнгө</div>
-          <p className="footer-brand-desc">
-            Сүхбаатар аймгийн Дариганга сумд тулгуурласан орон нутгийн сонин.
-            Ерөнхий редактор: Д.Улаанхүүхэн.
-          </p>
+          <div className="footer-brand-name">
+            <span style={{ color: '#e40a03' }}>Сүхбаатарын</span>{' '}
+            <span style={{ color: '#1664de' }}>Өнгө</span>
+          </div>
+          <p className="footer-brand-desc">Сүхбаатар аймгийн чөлөөт хэвлэл</p>
           <br/>
           <a
             href="https://facebook.com/sukhbaatar.ungu"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: '#4267B2', background: '#fff', padding: '0.3rem 0.8rem', borderRadius: 4, fontSize: '0.85rem', fontWeight: 600 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#4267B2', background: '#fff', padding: '0.3rem 0.8rem', borderRadius: 4, fontSize: '0.85rem', fontWeight: 600 }}
           >
-            Facebook хуудас
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.48 0-1.94.92-1.94 1.87v2.24h3.3l-.53 3.49h-2.77V24C19.61 23.1 24 18.1 24 12.07z"/>
+            </svg>
+            <span>Facebook хуудас</span>
           </a>
         </div>
         <div>
@@ -117,9 +111,6 @@ function SiteFooter() {
             <li><Link href="/about">Бидний тухай</Link></li>
             <li><Link href="/about#contact">Холбоо барих</Link></li>
             <li><Link href="/search">Хайлт</Link></li>
-            <li>
-              <a href="/feed.xml" target="_blank">RSS тэжээл</a>
-            </li>
           </ul>
         </div>
       </div>
@@ -132,7 +123,7 @@ function SiteFooter() {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="mn" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="mn">
       <body>
         <SiteHeader />
         <main className="page-main">{children}</main>

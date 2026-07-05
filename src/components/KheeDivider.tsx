@@ -15,7 +15,7 @@ const BOT_RAIL    = 64
 
 export function KheeDivider({
   variant = 'content',
-  color   = '#C0392B',
+  color   = '#e40a03',
   height  = 100,
 }: KheeDividerProps) {
   const uid     = useId().replace(/:/g, '')

@@ -63,15 +63,15 @@ async function seed() {
     videoEmbedUrl?: string
   }> = [
     {
-      title: 'Сүхбаатар аймгийн Дариганга сумын хөгжлийн чиг хандлага',
+      title: 'Сүхбаатар аймгийн Дарьганга сумын хөгжлийн чиг хандлага',
       slug: 'dariganga-khogjoliyn-chig-handlag',
-      excerpt: 'Дариганга сум нь малын аж ахуй, байгалийн үзэсгэлэнт газраараа алдартай. Сумын хөгжлийн талаар ярилцлага хийлээ.',
+      excerpt: 'Дарьганга сум нь малын аж ахуй, байгалийн үзэсгэлэнт газраараа алдартай. Сумын хөгжлийн талаар ярилцлага хийлээ.',
       category: categories[0]?.id,
       author: authors[0]?.id,
       featured: true,
       status: 'published',
       publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      tags: [{ tag: 'Дариганга' }, { tag: 'Хөгжил' }],
+      tags: [{ tag: 'Дарьганга' }, { tag: 'Хөгжил' }],
     },
     {
       title: 'Аймгийн 2024 оны ойн арга хэмжээний тайлан',
@@ -85,7 +85,7 @@ async function seed() {
       tags: [{ tag: 'Ой тэмдэглэл' }],
     },
     {
-      title: 'Дариганга нутгийн уламжлалт нааданчдын уулзалт',
+      title: 'Дарьганга нутгийн уламжлалт нааданчдын уулзалт',
       slug: 'dariganga-naadanchdiin-uulzalt',
       excerpt: 'Жил бүр уламжлал болсон нааданчдын уулзалт энэ жил ч амжилттай боллоо.',
       category: categories[3]?.id,
@@ -98,7 +98,7 @@ async function seed() {
     {
       title: 'Мал аж ахуйн зуны бэлтгэл ажил эхэллээ',
       slug: 'mal-aj-ahuin-zuny-beltgel',
-      excerpt: 'Дариганга сумын малчид зуны бэлчээрт нүүж, малынхаа эрүүл мэндийг хамгаалах ажилд оржээ.',
+      excerpt: 'Дарьганга сумын малчид зуны бэлчээрт нүүж, малынхаа эрүүл мэндийг хамгаалах ажилд оржээ.',
       category: categories[4]?.id,
       author: authors[1]?.id,
       featured: false,
@@ -107,9 +107,9 @@ async function seed() {
       tags: [{ tag: 'Мал аж ахуй' }],
     },
     {
-      title: 'Видео: Дариганга нутгийн байгаль орчны тойм',
+      title: 'Видео: Дарьганга нутгийн байгаль орчны тойм',
       slug: 'dariganga-baigal-orchny-toim-video',
-      excerpt: 'Дариганга нутгийн байгаль орчны гайхалтай видео тоймыг үзнэ үү.',
+      excerpt: 'Дарьганга нутгийн байгаль орчны гайхалтай видео тоймыг үзнэ үү.',
       category: categories[0]?.id,
       author: authors[0]?.id,
       featured: false,
