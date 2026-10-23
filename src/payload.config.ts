@@ -12,6 +12,7 @@ import { Categories } from './collections/Categories'
 import { Authors } from './collections/Authors'
 import { Articles } from './collections/Articles'
 import { Ads } from './collections/Ads'
+import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -36,6 +37,7 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
+    prodMigrations: migrations,
   }),
   sharp,
   plugins: [
