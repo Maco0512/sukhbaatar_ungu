@@ -1,3 +1,4 @@
+import path from 'path'
 import type { CollectionConfig } from 'payload'
 
 export const Media: CollectionConfig = {
@@ -18,6 +19,9 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
+    // Local disk storage (used when BLOB_READ_WRITE_TOKEN is unset, e.g. the VPS
+    // deployment). In Docker this resolves to /app/media, which is a named volume.
+    staticDir: path.resolve(process.cwd(), 'media'),
     mimeTypes: ['image/*'],
     imageSizes: [
       {

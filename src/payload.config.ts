@@ -41,8 +41,10 @@ export default buildConfig({
   }),
   sharp,
   plugins: [
+    // Only active when a blob token is provided (Vercel). On the self-hosted VPS
+    // the token is absent, so Payload falls back to local disk (Media.staticDir).
     vercelBlobStorage({
-      enabled: true,
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
       collections: {
         media: true,
       },
