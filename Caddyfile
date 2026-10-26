@@ -1,22 +1,7 @@
-# No domain yet — serving plain HTTP on :80.
-# To switch to the domain later, replace `:80` with:
-#
-#   sukhbaatarungu.com, www.sukhbaatarungu.com
-#
-# Caddy then provisions a Let's Encrypt certificate automatically. Remember to
-# also update SERVER_URL in .env and rebuild (NEXT_PUBLIC_* is baked in at build
-# time) — see DEPLOY.md.
-
-:80 {
-	encode zstd gzip
-
-	reverse_proxy app:3000 {
-		header_up Host {host}
-		header_up X-Real-IP {remote_host}
-	}
-
-	# Admin uploads can be large; don't let the proxy cut them off.
-	request_body {
-		max_size 50MB
-	}
+sukhbaatarungu.mn, www.sukhbaatarungu.mn {
+    encode zstd gzip
+    request_body {
+        max_size 50MB
+    }
+    reverse_proxy app:3000
 }
